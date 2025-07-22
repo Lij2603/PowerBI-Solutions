@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power BI Solutions - Tools</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        .header {
+            text-align: center;
+            background: white;
+            padding: 40px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .tool-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .tool-card:hover {
+            transform: translateY(-5px);
+        }
+        .tool-icon {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        .tool-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: opacity 0.3s ease;
+        }
+        .tool-button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Power BI Solutions</h1>
+        <p>Professional tools for optimizing Power BI reports and DAX code</p>
+        <a href="https://github.com/yourusername/PowerBI-Solutions" target="_blank" style="color: #667eea;">View on GitHub</a>
+    </div>
+
+    <div class="tools-grid">
+        <div class="tool-card">
+            <div class="tool-icon">📊</div>
+            <h2>Code Analyzer</h2>
+            <p>Comprehensive analysis tool for DAX and M code. Identifies performance issues, best practice violations, and provides detailed recommendations for improvement.</p>
+            <p><strong>Features:</strong></p>
+            <ul>
+                <li>Real-time code analysis</li>
+                <li>Issue severity rating</li>
+                <li>Best practices compliance</li>
+                <li>Sample code library</li>
+            </ul>
+            <a href="code-analyzer.html" class="tool-button">Launch Analyzer</a>
+        </div>
+
+        <div class="tool-card">
+            <div class="tool-icon">⚡</div>
+            <h2>DAX Optimizer</h2>
+            <p>Intelligent optimization engine that automatically improves your DAX code for better performance. Uses advanced pattern recognition to apply proven optimization techniques.</p>
+            <p><strong>Features:</strong></p>
+            <ul>
+                <li>Automatic code optimization</li>
+                <li>Performance impact estimation</li>
+                <li>Before/after comparisons</li>
+                <li>Educational explanations</li>
+            </ul>
+            <a href="dax-optimizer.html" class="tool-button">Launch Optimizer</a>
+        </div>
+
+        <div class="tool-card">
+            <div class="tool-icon">📚</div>
+            <h2>Documentation</h2>
+            <p>Complete guides, best practices, and reference materials for Power BI development. Everything you need to become a Power BI optimization expert.</p>
+            <p><strong>Includes:</strong></p>
+            <ul>
+                <li>Complete DAX optimization guide</li>
+                <li>M code best practices</li>
+                <li>Common patterns and anti-patterns</li>
+                <li>Real-world examples</li>
+            </ul>
+            <a href="../documentation/dax-optimization.md" class="tool-button">View Documentation</a>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; padding: 20px;">
+        <p style="color: #666;">
+            Made with ❤️ for the Power BI community | 
+            <a href="https://github.com/yourusername/PowerBI-Solutions" style="color: #667eea;">Contribute on GitHub</a>
+        </p>
+    </div>
+</body>
+</html>
