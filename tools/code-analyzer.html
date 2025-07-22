@@ -1,0 +1,437 @@
+import React, { useState, useEffect } from 'react';
+import { AlertCircle, CheckCircle, Code, Database, FileText, Lightbulb, Play, Settings, Zap } from 'lucide-react';
+
+const PowerBICodeAnalyzer = () => {
+  const [activeTab, setActiveTab] = useState('dax');
+  const [code, setCode] = useState('');
+  const [analysis, setAnalysis] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Sample DAX and M code for demonstration
+  const sampleCodes = {
+    dax: {
+      poor: `Sales Amount = 
+SUM(Sales[Amount]) + 
+CALCULATE(
+    SUM(Sales[Amount]),
+    FILTER(
+        Sales,
+        Sales[Date] >= DATE(2023,1,1) &&
+        Sales[Date] <= DATE(2023,12,31)
+    )
+)`,
+      good: `Total Sales = 
+VAR CurrentYearSales = 
+    CALCULATE(
+        SUM(Sales[Amount]),
+        'Date'[Year] = YEAR(TODAY())
+    )
+RETURN
+    CurrentYearSales`
+    },
+    m: {
+      poor: `let
+    Source = Excel.Workbook(File.Contents("C:\\Data\\Sales.xlsx")),
+    Table1 = Source{[Name="Sheet1"]}[Data],
+    #"Changed Type" = Table.TransformColumnTypes(Table1,{{"Date", type date}, {"Amount", type number}})
+in
+    #"Changed Type"`,
+      good: `let
+    // Load and transform sales data
+    Source = Excel.Workbook(
+        Web.Contents("https://example.com/sales.xlsx")
+    ),
+    SalesSheet = Source{[Name="Sales"]}[Data],
+    
+    // Promote headers and clean data
+    PromotedHeaders = Table.PromoteHeaders(SalesSheet),
+    CleanedData = Table.TransformColumnTypes(
+        PromotedHeaders,
+        {
+            {"Date", type date},
+            {"Amount", Currency.Type},
+            {"Customer", type text}
+        }
+    ),
+    
+    // Filter out invalid records
+    ValidRecords = Table.SelectRows(
+        CleanedData,
+        each [Date] <> null and [Amount] > 0
+    )
+in
+    ValidRecords`
+    }
+  };
+
+  const analyzeCode = () => {
+    setLoading(true);
+    
+    // Simulate analysis delay
+    setTimeout(() => {
+      const issues = [];
+      const optimizations = [];
+      
+      if (activeTab === 'dax') {
+        // DAX Analysis
+        if (code.includes('FILTER(') && !code.includes('VAR ')) {
+          issues.push({
+            type: 'performance',
+            severity: 'high',
+            line: code.split('\n').findIndex(line => line.includes('FILTER(')) + 1,
+            message: 'FILTER function can be performance-intensive. Consider using CALCULATE with filter context instead.',
+            suggestion: 'Use CALCULATE with boolean conditions or VAR statements for better performance.'
+          });
+        }
+        
+        if (code.includes('SUM(') && code.split('SUM(').length > 2) {
+          issues.push({
+            type: 'logic',
+            severity: 'medium',
+            line: 1,
+            message: 'Multiple SUM functions detected. This might cause double-counting.',
+            suggestion: 'Review the logic to ensure measures are not being double-counted.'
+          });
+        }
+        
+        if (!code.includes('VAR ') && code.length > 100) {
+          optimizations.push({
+            type: 'readability',
+            message: 'Consider using VAR statements to improve code readability and maintainability.',
+            example: 'VAR MyVariable = CALCULATE(...)\nRETURN MyVariable'
+          });
+        }
+        
+        if (code.includes('&&') || code.includes('||')) {
+          optimizations.push({
+            type: 'syntax',
+            message: 'Use AND/OR functions instead of && || for better DAX readability.',
+            example: 'AND(condition1, condition2) instead of condition1 && condition2'
+          });
+        }
+      } else {
+        // M Code Analysis
+        if (code.includes('File.Contents("C:\\')) {
+          issues.push({
+            type: 'portability',
+            severity: 'high',
+            line: code.split('\n').findIndex(line => line.includes('File.Contents("C:\\')) + 1,
+            message: 'Hard-coded file path detected. This will break when deployed or shared.',
+            suggestion: 'Use parameters or relative paths for better portability.'
+          });
+        }
+        
+        if (!code.includes('//')) {
+          optimizations.push({
+            type: 'documentation',
+            message: 'Add comments to explain data transformation steps.',
+            example: '// Step description\nTransformationStep = ...'
+          });
+        }
+        
+        if (code.includes('#"Changed Type"') && !code.includes('Currency.Type')) {
+          optimizations.push({
+            type: 'data-types',
+            message: 'Consider using specific data types like Currency.Type for monetary values.',
+            example: '{"Amount", Currency.Type} instead of {"Amount", type number}'
+          });
+        }
+      }
+      
+      setAnalysis({
+        issues: issues,
+        optimizations: optimizations,
+        codeQuality: issues.length === 0 ? 'excellent' : issues.some(i => i.severity === 'high') ? 'poor' : 'good'
+      });
+      setLoading(false);
+    }, 1500);
+  };
+
+  const loadSample = (quality) => {
+    setCode(sampleCodes[activeTab][quality]);
+    setAnalysis(null);
+  };
+
+  const getQualityColor = (quality) => {
+    switch (quality) {
+      case 'excellent': return 'text-green-600 bg-green-50 border-green-200';
+      case 'good': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'poor': return 'text-red-600 bg-red-50 border-red-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  const getSeverityIcon = (severity) => {
+    switch (severity) {
+      case 'high': return <AlertCircle className="w-4 h-4 text-red-500" />;
+      case 'medium': return <AlertCircle className="w-4 h-4 text-yellow-500" />;
+      case 'low': return <AlertCircle className="w-4 h-4 text-blue-500" />;
+      default: return <CheckCircle className="w-4 h-4 text-green-500" />;
+    }
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <Code className="w-6 h-6 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Power BI Code Analyzer</h1>
+            <p className="text-gray-600">Analyze, optimize, and improve your DAX and M code</p>
+          </div>
+        </div>
+        
+        {/* Tab Navigation */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab('dax')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              activeTab === 'dax' 
+                ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <Database className="w-4 h-4 inline mr-2" />
+            DAX Analysis
+          </button>
+          <button
+            onClick={() => setActiveTab('m')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              activeTab === 'm' 
+                ? 'bg-green-100 text-green-700 border border-green-200' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <Settings className="w-4 h-4 inline mr-2" />
+            M Code Analysis
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Code Input Panel */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {activeTab === 'dax' ? 'DAX Code' : 'M Code'} Editor
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => loadSample('poor')}
+                  className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+                >
+                  Load Poor Example
+                </button>
+                <button
+                  onClick={() => loadSample('good')}
+                  className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                >
+                  Load Good Example
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4">
+            <textarea
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder={`Enter your ${activeTab === 'dax' ? 'DAX' : 'M'} code here...`}
+              className="w-full h-64 p-3 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            />
+            
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={analyzeCode}
+                disabled={!code.trim() || loading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
+                {loading ? 'Analyzing...' : 'Analyze Code'}
+              </button>
+              
+              <button
+                onClick={() => {setCode(''); setAnalysis(null);}}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Analysis Results Panel */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Analysis Results
+            </h2>
+          </div>
+          
+          <div className="p-4">
+            {!analysis ? (
+              <div className="text-center text-gray-500 py-12">
+                <Code className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>Enter code and click "Analyze Code" to see results</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Code Quality Score */}
+                <div className={`p-4 rounded-lg border ${getQualityColor(analysis.codeQuality)}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    {analysis.codeQuality === 'excellent' ? (
+                      <CheckCircle className="w-5 h-5" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5" />
+                    )}
+                    <span className="font-semibold">
+                      Code Quality: {analysis.codeQuality.charAt(0).toUpperCase() + analysis.codeQuality.slice(1)}
+                    </span>
+                  </div>
+                  <p className="text-sm">
+                    {analysis.issues.length === 0 
+                      ? 'No critical issues found. Great work!'
+                      : `Found ${analysis.issues.length} issue(s) and ${analysis.optimizations.length} optimization suggestion(s).`
+                    }
+                  </p>
+                </div>
+
+                {/* Issues */}
+                {analysis.issues.length > 0 && (
+                  <div>
+                    <h3 className="text-md font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      Issues Found ({analysis.issues.length})
+                    </h3>
+                    <div className="space-y-3">
+                      {analysis.issues.map((issue, index) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-start gap-2 mb-2">
+                            {getSeverityIcon(issue.severity)}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-gray-900">{issue.type}</span>
+                                <span className={`px-2 py-1 text-xs rounded ${
+                                  issue.severity === 'high' ? 'bg-red-100 text-red-700' :
+                                  issue.severity === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-blue-100 text-blue-700'
+                                }`}>
+                                  {issue.severity}
+                                </span>
+                                {issue.line && (
+                                  <span className="text-xs text-gray-500">Line {issue.line}</span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-700 mb-2">{issue.message}</p>
+                              <p className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                                <strong>Suggestion:</strong> {issue.suggestion}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Optimizations */}
+                {analysis.optimizations.length > 0 && (
+                  <div>
+                    <h3 className="text-md font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <Lightbulb className="w-4 h-4" />
+                      Optimization Suggestions ({analysis.optimizations.length})
+                    </h3>
+                    <div className="space-y-3">
+                      {analysis.optimizations.map((opt, index) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-start gap-2">
+                            <Zap className="w-4 h-4 text-yellow-500 mt-0.5" />
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-900 mb-1">{opt.type}</div>
+                              <p className="text-sm text-gray-700 mb-2">{opt.message}</p>
+                              {opt.example && (
+                                <div className="bg-gray-50 p-2 rounded text-xs font-mono text-gray-600">
+                                  <strong>Example:</strong><br />
+                                  {opt.example}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Best Practices Panel */}
+      <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          {activeTab === 'dax' ? 'DAX' : 'M Code'} Best Practices
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {activeTab === 'dax' ? (
+            <>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">Performance Tips</h3>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Use VAR statements to avoid recalculating expressions</li>
+                  <li>• Prefer CALCULATE over FILTER when possible</li>
+                  <li>• Use KEEPFILTERS to maintain filter context</li>
+                  <li>• Avoid using RELATED in calculated columns when possible</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">Code Structure</h3>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Use meaningful measure and column names</li>
+                  <li>• Format code with proper indentation</li>
+                  <li>• Group related measures in folders</li>
+                  <li>• Document complex calculations with comments</li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">Data Source Tips</h3>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Use parameters for file paths and connections</li>
+                  <li>• Implement error handling with try...otherwise</li>
+                  <li>• Use query folding when working with databases</li>
+                  <li>• Cache intermediate results for complex transformations</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">Code Organization</h3>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Add descriptive comments for each transformation step</li>
+                  <li>• Use meaningful variable names</li>
+                  <li>• Group related transformations logically</li>
+                  <li>• Use proper data types for optimal performance</li>
+                </ul>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PowerBICodeAnalyzer;
