@@ -4,9 +4,9 @@ A comprehensive collection of tools and guides for optimizing Power BI reports, 
 
 ## 🛠️ Tools
 
-- **[Code Analyzer](tools/code-analyzer.html)** - Analyze DAX and M code for issues and best practices
-- **[DAX Optimizer](tools/dax-optimizer.html)** - Automatically optimize DAX code for better performance
-- **[Documentation](documentation/)** - Complete guides and best practices
+- **[Code Analyzer](tools/code-analyzer.html)** 
+- **[DAX Optimizer](tools/DAX-optimizer.html)**
+- **[Tools Dashboard](tools/index.html)**
 
 ## 🚀 Quick Start
 
