@@ -10,9 +10,9 @@ A comprehensive collection of tools and guides for optimizing Power BI reports, 
 
 ## 🚀 Quick Start
 
-1. Clone this repository
-2. Open `tools/index.html` in your browser
-3. Start analyzing and optimizing your Power BI code!
+1. Click on any tool link above
+2. Paste your DAX or M code
+3. Get instant analysis and optimization!
 
 ## 📚 Documentation
 
